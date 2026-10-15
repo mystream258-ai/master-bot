@@ -1,0 +1,6 @@
+{
+  "name": "Panel del Bot",
+  "description": "Panel de control y supervisión para bot de WhatsApp en Android",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

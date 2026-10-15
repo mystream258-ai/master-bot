@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Panel del Bot - Maqueta Interactiva Fase 0</title>
+  <style>
+    :root {
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+
+      /* Material 3 Light Tokens */
+      --bg-page: #edf2f6;
+      --bg-device: #ffffff;
+      --surface: #ffffff;
+      --surface-variant: #f1f4f8;
+      --surface-container-high: #e5ebf1;
+      --outline: #cbd5e1;
+      --outline-variant: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-tertiary: #64748b;
+      --primary: #006874;
+      --on-primary: #ffffff;
+      --primary-container: #9eeffd;
+      --on-primary-container: #001f24;
+
+      /* Colores de Estados Semánticos (Fieles al panel original) */
+      --st-green-bar: #1f8a5b;
+      --st-green-bg: #e8f5e9;
+      --st-green-text: #135c3c;
+
+      --st-amber-bar: #b26a00;
+      --st-amber-bg: #fff8e1;
+      --st-amber-text: #7c4800;
+
+      --st-red-bar: #c23b31;
+      --st-red-bg: #fdebee;
+      --st-red-text: #8c1e17;
+
+      --st-purple-bar: #6b3fa0;
+      --st-purple-bg: #f3e8fd;
+      --st-purple-text: #451e70;
+
+      --st-gray-bar: #74838d;
+      --st-gray-bg: #edf2f5;
+      --st-gray-text: #37474f;
+
+      --card-radius: 16px;
+      --btn-radius: 12px;
+      --input-radius: 8px;
+      --touch-target: 48px;
+    }
+
+    [data-theme="dark"] {
+      --bg-page: #0b0f12;
+      --bg-device: #14181c;
+      --surface: #1a2026;
+      --surface-variant: #222a32;
+      --surface-container-high: #2c3640;
+      --outline: #3e4c59;
+      --outline-variant: #2f3a44;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-tertiary: #64748b;
+      --primary: #4dd8ec;
+      --on-primary: #00363d;
+      --primary-container: #004f58;
+      --on-primary-container: #9eeffd;
+
+      --st-green-bar: #2ebd7b;
+      --st-green-bg: #0d2c1d;
+      --st-green-text: #69f0ae;
+
+      --st-amber-bar: #e59218;
+      --st-amber-bg: #331f00;
+      --st-amber-text: #ffcc80;
+
+      --st-red-bar: #ef5350;
+      --st-red-bg: #3b1111;
+      --st-red-text: #ffcdd2;
+
+      --st-purple-bar: #9c67dc;
+      --st-purple-bg: #29153f;
+      --st-purple-text: #e1bee7;
+
+      --st-gray-bar: #8da0ac;
+      --st-gray-bg: #242c31;
+      --st-gray-text: #cfd8dc;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: var(--font-family);
+      background: var(--bg-page);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* CONTENEDOR DISPOSITIVO MÓVIL 360x800 */
+    .phone-viewport {
+      width: 100%;
+      max-width: 420px;
+      height: 100vh;
+      max-height: 840px;
+      background: var(--bg-device);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.22);
+      overflow: hidden;
+    }
+    @media (max-width: 450px) {
+      .phone-viewport {
+        max-width: 100%;
+        height: 100vh;
+        max-height: none;
+        box-shadow: none;
+      }
+    }
+
+    /* 1. ENCABEZADO DE ESTADO: LO PRIMERO QUE SE VE */
+    .status-header {
+      width: 100%;
+      padding: 16px 16px 14px 18px;
+      position: relative;
+      background: var(--surface);
+      border-bottom: 1px solid var(--outline-variant);
+      display: flex;
+      align-items: stretch;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      z-index: 20;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .status-accent-bar {
+      width: 8px;
+      border-radius: 4px;
+      background: var(--st-gray-bar);
+      flex-shrink: 0;
+      transition: background 0.25s ease;
+    }
+    .status-text-wrap {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .status-app-badge {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-tertiary);
+      margin-bottom: 2px;
+    }
+    .status-title {
+      font-size: 21px;
+      font-weight: 700;
+      line-height: 1.25;
+      margin: 0;
+      color: var(--text-main);
+      transition: color 0.25s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .status-subtitle {
+      font-size: 13px;
+      line-height: 1.35;
+      color: var(--text-muted);
+      margin-top: 3px;
+      transition: opacity 0.2s ease, max-height 0.2s ease;
+    }
+
+    /* VERSIÓN COMPACTA (REDUCIDA A FRANJA DELGADA) */
+    .status-header.compact {
+      padding: 10px 14px 10px 16px;
+      gap: 10px;
+    }
+    .status-header.compact .status-app-badge { display: none; }
+    .status-header.compact .status-title { font-size: 16px; line-height: 20px; }
+    .status-header.compact .status-subtitle { display: none; }
+
+    /* Clases de colores según el Estado */
+    .status-header.st-ok .status-accent-bar { background: var(--st-green-bar); }
+    .status-header.st-ok .status-title { color: var(--st-green-bar); }
+
+    .status-header.st-wait .status-accent-bar { background: var(--st-amber-bar); }
+    .status-header.st-wait .status-title { color: var(--st-amber-bar); }
+
+    .status-header.st-bad .status-accent-bar { background: var(--st-red-bar); }
+    .status-header.st-bad .status-title { color: var(--st-red-bar); }
+
+    .status-header.st-pair .status-accent-bar { background: var(--st-purple-bar); }
+    .status-header.st-pair .status-title { color: var(--st-purple-bar); }
+
+    .status-header.st-off .status-accent-bar { background: var(--st-gray-bar); }
+    .status-header.st-off .status-title { color: var(--st-gray-bar); }
+
+    /* CONTENEDOR DE PANTALLAS */
+    .screen-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 14px 16px 84px 16px;
+      display: none;
+      scroll-behavior: smooth;
+    }
+    .screen-content.active {
+      display: block;
+    }
+
+    /* TARJETAS M3 */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--card-radius);
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-tertiary);
+      margin: 0 0 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* CHECKLIST DE PREPARACIÓN CON PUNTOS DE COLOR */
+    .checklist {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--surface-variant);
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    .dot.ok { background: var(--st-green-bar); }
+    .dot.bad { background: var(--st-red-bar); }
+    .dot.wait { background: var(--st-amber-bar); }
+
+    /* BOTONES DE CONTROL */
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .btn {
+      min-height: var(--touch-target);
+      border-radius: var(--btn-radius);
+      border: 1px solid var(--outline);
+      background: var(--surface);
+      color: var(--text-main);
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .btn:active:not(:disabled) { transform: scale(0.97); }
+    .btn.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--on-primary);
+    }
+    .btn.highlight-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--on-primary);
+      box-shadow: 0 0 0 3px rgba(0, 104, 116, 0.25);
+      animation: pulseHighlight 2s infinite;
+    }
+    @keyframes pulseHighlight {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    .btn.danger {
+      background: transparent;
+      border-color: var(--st-red-bar);
+      color: var(--st-red-bar);
+    }
+    .btn.danger.highlight-danger {
+      background: var(--st-red-bg);
+      border-width: 2px;
+      font-weight: 700;
+      box-shadow: 0 0 0 3px rgba(194, 59, 49, 0.2);
+    }
+    .btn.full { width: 100%; }
+    .btn:disabled {
+      opacity: 0.38;
+      cursor: not-allowed;
+      border-color: var(--outline-variant);
+      background: var(--surface-variant);
+      color: var(--text-tertiary);
+      transform: none !important;
+      box-shadow: none !important;
+      animation: none !important;
+    }
+
+    /* AVISOS INTELIGENTES Y ERRORES FATALES */
+    .smart-banner {
+      background: var(--st-amber-bg);
+      border-left: 5px solid var(--st-amber-bar);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: var(--st-amber-text);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .smart-banner.err {
+      background: var(--st-red-bg);
+      border-left-color: var(--st-red-bar);
+      color: var(--st-red-text);
+    }
+    .smart-banner .banner-head {
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .smart-banner .banner-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 4px;
+    }
+    .btn-chip {
+      background: rgba(0,0,0,0.07);
+      border: 1px solid rgba(0,0,0,0.12);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: inherit;
+      cursor: pointer;
+    }
+    [data-theme="dark"] .btn-chip {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    /* VINCULACIÓN EN 2 PASOS */
+    .pairing-box {
+      background: var(--st-purple-bg);
+      border: 1.5px solid var(--st-purple-bar);
+      border-radius: var(--card-radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      color: var(--st-purple-text);
+    }
+    .code-display {
+      font-family: var(--font-mono);
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: 6px;
+      text-align: center;
+      background: var(--surface);
+      border: 2px dashed var(--st-purple-bar);
+      border-radius: 12px;
+      padding: 12px 6px;
+      margin: 12px 0;
+      color: var(--st-purple-bar);
+      user-select: all;
+    }
+    .input-field {
+      width: 100%;
+      height: var(--touch-target);
+      background: var(--surface);
+      border: 1.5px solid var(--outline);
+      border-radius: var(--input-radius);
+      padding: 0 12px;
+      font-size: 15px;
+      font-family: var(--font-mono);
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+    .input-field:focus { outline: none; border-color: var(--primary); }
+
+    /* PESTAÑAS M3 (CHIPS) */
+    .tab-pills {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      scrollbar-width: none;
+    }
+    .tab-pills::-webkit-scrollbar { display: none; }
+    .tab-pill {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      background: var(--surface-variant);
+      color: var(--text-muted);
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+    .tab-pill.active {
+      background: var(--primary);
+      color: var(--on-primary);
+    }
+
+    /* EVENTOS EN ACTIVIDAD */
+    .event-item {
+      background: var(--surface);
+      border-left: 4px solid var(--outline);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .event-item.tag-ERR { border-left-color: var(--st-red-bar); background: var(--st-red-bg); }
+    .event-item.tag-WARN { border-left-color: var(--st-amber-bar); background: var(--st-amber-bg); }
+    .event-item.tag-CLI { border-left-color: #0284c7; background: #f0f9ff; }
+    .event-item.tag-ONLINE, .event-item.tag-OK { border-left-color: var(--st-green-bar); }
+    .event-item.tag-PAIR, .event-item.tag-CODE { border-left-color: var(--st-purple-bar); }
+
+    [data-theme="dark"] .event-item.tag-CLI { background: #0c2333; }
+
+    .event-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+    .event-badge {
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0,0,0,0.07);
+    }
+    .event-time { color: var(--text-tertiary); font-family: var(--font-mono); }
+    .event-msg {
+      font-size: 13px;
+      line-height: 1.35;
+      color: var(--text-main);
+      word-break: break-word;
+    }
+
+    /* CONSOLA Y TERMINAL */
+    .console-screen {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.45;
+      padding: 12px;
+      border-radius: 12px;
+      height: 200px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* BARRA INFERIOR DE NAVEGACIÓN */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: var(--surface);
+      border-top: 1px solid var(--outline-variant);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 30;
+    }
+    .nav-btn {
+      flex: 1;
+      height: 100%;
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-tertiary);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+    .nav-pill {
+      width: 44px;
+      height: 26px;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .nav-btn.active .nav-pill {
+      background: var(--primary-container);
+    }
+    .nav-btn.active {
+      color: var(--on-primary-container);
+      font-weight: 700;
+    }
+    .nav-icon { font-size: 16px; }
+
+    /* BOTÓN FLOTANTE FAB (SIMULADOR OCULTABLE) */
+    .fab-sim {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 45;
+      background: #0f172a;
+      color: #38bdf8;
+      border: 1.5px solid #38bdf8;
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      user-select: none;
+    }
+    .fab-sim:active { transform: scale(0.95); }
+
+    /* MODAL DEL SIMULADOR DE ESTADOS */
+    .sheet-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 50;
+      display: none;
+      align-items: flex-end;
+      backdrop-filter: blur(2px);
+    }
+    .sheet-overlay.open { display: flex; }
+    .sheet-content {
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-height: 82vh;
+      overflow-y: auto;
+      padding: 18px 18px 24px 18px;
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.25);
+    }
+    .sheet-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* DIÁLOGO MODAL GENERAL */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 60;
+      backdrop-filter: blur(2px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 20px;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+    .modal-title { font-size: 18px; font-weight: 700; margin: 0 0 8px 0; }
+    .modal-desc { font-size: 14px; color: var(--text-muted); line-height: 1.4; margin-bottom: 16px; }
+
+    /* SECCIÓN AVANZADA EN AJUSTES */
+    .advanced-box {
+      border: 1px dashed var(--outline);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 10px;
+      background: var(--surface-variant);
+    }
+    details summary {
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text-tertiary);
+      outline: none;
+      user-select: none;
+    }
+
+    /* SNACKBAR */
+    #snackbar {
+      position: absolute;
+      bottom: 74px;
+      left: 16px;
+      right: 16px;
+      background: #1e293b;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 40;
+    }
+    .subtext { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
+    .row-between { display: flex; align-items: center; justify-content: space-between; }
+    .badge-count {
+      background: var(--outline-variant);
+      color: var(--text-main);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin-left: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CONTENEDOR DISPOSITIVO MÓVIL (360x800 DP) -->
+  <div class="phone-viewport" id="viewport">
+
+    <!-- BOTÓN FLOTANTE DISCRETO PARA SIMULAR ESTADOS (OCULTABLE) -->
+    <button class="fab-sim" id="fabSim" onclick="openSimSheet()">
+      🎛 Simular estado
+    </button>
+
+    <!-- 1. ENCABEZADO DE ESTADO (LO PRIMERO QUE SE VE) -->
+    <header id="mainHeader" class="status-header st-off">
+      <div class="status-accent-bar"></div>
+      <div class="status-text-wrap">
+        <div class="status-app-badge">Panel del bot</div>
+        <h1 id="headerTitle" class="status-title">Bot detenido</h1>
+        <div id="headerSubtitle" class="status-subtitle">Pulsa Iniciar para ponerlo a trabajar.</div>
+      </div>
+    </header>
+
+    <!-- PANTALLA 1: ESTADO Y CONTROL -->
+    <main id="screen-estado" class="screen-content active" onscroll="onScreenScroll(this)">
+
+      <!-- AVISO DE ERROR FATAL (PANEL ROJO CON INSTRUCCIONES) -->
+      <div id="bannerFatal" class="smart-banner err" style="display:none;">
+        <div class="banner-head">⛔ Error fatal al arrancar el bot</div>
+        <div id="textFatalDesc">
+          El proceso de Node.js se cerró inesperadamente. El archivo <b>index.js</b> contiene un error de sintaxis en la línea 42 o faltan módulos esenciales.
+        </div>
+        <div class="subtext" style="color:inherit; font-weight:500;">
+          <b>Qué hacer:</b> Pulsa «Elegir index.js nuevo» para sustituirlo o ve a Consola/Terminal para revisar el diagnóstico.
+        </div>
+        <div class="banner-actions">
+          <button class="btn-chip" onclick="navigateTo('mantenimiento')">Ir a Reparar</button>
+          <button class="btn-chip" onclick="hideFatalBanner()">Entendido</button>
+        </div>
+      </div>
+
+      <!-- AVISO INTELIGENTE: COSAS QUE PUEDEN FALLAR EN ESTE SISTEMA -->
+      <div id="bannerSyntaxWarning" class="smart-banner err" style="display:none;">
+        <div class="banner-head">⚠️ Tu index.js tiene cosas que pueden fallar en este sistema</div>
+        <div>
+          Se detectaron <b>2 rutas fijas de Linux/PC</b> (/storage/emulated/0/... y /data/data/com.termux) que no existen aquí. El panel intentará adaptarlas automáticamente al arrancar.
+        </div>
+        <div class="banner-actions">
+          <button class="btn-chip" onclick="hideSyntaxWarning()">Entendido</button>
+        </div>
+      </div>
+
+      <!-- AVISO INTELIGENTE: RECURSOS FALTANTES EN MEDIA -->
+      <div id="bannerMediaWarning" class="smart-banner" style="display:none;">
+        <div class="banner-head">⚠️ Faltan recursos (video, APK, imágenes) en la carpeta media</div>
+        <div>El bot necesita archivos multimedia configurados en los mensajes (ej. catalogo.pdf, promo.mp4).</div>
+        <div class="banner-actions">
+          <button class="btn-chip" onclick="showMediaFolderModal()">Abrir carpeta media</button>
+          <button class="btn-chip" onclick="hideMediaWarning()">Ocultar aviso</button>
+        </div>
+      </div>
+
+      <!-- VINCULACIÓN PASO 1: ENVIAR NÚMERO (MORADO) -->
+      <div id="panelPairStep1" class="pairing-box" style="display:none;">
+        <div style="font-weight:700; margin-bottom:4px;">Paso 1: Escribe el número de WhatsApp a vincular</div>
+        <div class="subtext" style="color:inherit; margin-bottom:10px;">
+          Con código de país y sin «+». Ejemplo: <b>5215512345678</b>
+        </div>
+        <input type="tel" id="inputPhoneNumber" class="input-field" placeholder="5215512345678" maxlength="16">
+        <button class="btn primary full" onclick="submitPhoneNumber()">Enviar número</button>
+      </div>
+
+      <!-- VINCULACIÓN PASO 2: CÓDIGO DE 8 DÍGITOS (MORADO) -->
+      <div id="panelPairStep2" class="pairing-box" style="display:none;">
+        <div style="font-weight:700;">Paso 2: Escribe este código en tu teléfono</div>
+        <div id="displayPairCode" class="code-display">ABCD-1234</div>
+        <div class="subtext" style="color:inherit; margin-bottom:10px; line-height: 1.4;">
+          Abre <b>WhatsApp → Dispositivos vinculados → Vincular con número de teléfono</b> y escribe el código arriba.<br>
+          <span style="font-size: 11px; opacity: 0.9;">⏳ Este código caduca en pocos minutos.</span>
+        </div>
+        <button class="btn full" onclick="copyPairCode()">📋 Copiar código</button>
+      </div>
+
+      <!-- CHECKLIST DE PREPARACIÓN CON PUNTOS DE COLOR -->
+      <div class="card">
+        <div class="card-title">Preparación del bot</div>
+        <ul class="checklist">
+          <li class="check-item"><span id="dot-node" class="dot ok"></span> Node.js <span id="lbl-node" style="font-size:11px; color:var(--text-tertiary); margin-left:auto;">v22</span></li>
+          <li class="check-item"><span id="dot-deps" class="dot ok"></span> Librerías <span id="lbl-deps" style="font-size:11px; color:var(--text-tertiary); margin-left:auto;">OK</span></li>
+          <li class="check-item"><span id="dot-index" class="dot ok"></span> index.js <span id="lbl-index" style="font-size:11px; color:var(--text-tertiary); margin-left:auto;">Listo</span></li>
+          <li class="check-item"><span id="dot-wa" class="dot wait"></span> WhatsApp <span id="lbl-wa" style="font-size:11px; color:var(--text-tertiary); margin-left:auto;">Pendiente</span></li>
+        </ul>
+      </div>
+
+      <!-- BOTONES DE CONTROL PRINCIPAL -->
+      <div class="card">
+        <div class="card-title">Control</div>
+        <div class="btn-row">
+          <button id="btnStart" class="btn primary" onclick="onStartClicked()">
+            Iniciar
+          </button>
+          <button id="btnStop" class="btn" disabled onclick="onStopClicked()">
+            Detener
+          </button>
+          <button id="btnRestart" class="btn" disabled onclick="onRestartClicked()">
+            Reiniciar
+          </button>
+        </div>
+        <!-- ACCIÓN RÁPIDA DESTACADA CUANDO FALTA INSTALAR O FALTA INDEX.JS -->
+        <div id="quickActionWrap" style="display:none; margin-top:10px;">
+          <button id="btnQuickAction" class="btn full highlight-primary" onclick="onQuickActionClicked()">
+            🛠 Instalar / reparar ahora
+          </button>
+        </div>
+      </div>
+
+      <!-- GESTIÓN DE SESIÓN DE WHATSAPP -->
+      <div class="card">
+        <div class="card-title">Cuenta de WhatsApp</div>
+        <button id="btnResetSession" class="btn danger full" onclick="openResetModal()">
+          Borrar sesión y vincular
+        </button>
+        <div class="subtext">
+          Úsalo si cambiaste de número o si la sesión se cerró.
+        </div>
+      </div>
+
+    </main>
+
+    <!-- PANTALLA 2: ACTIVIDAD (PESTAÑAS & FEED) -->
+    <main id="screen-actividad" class="screen-content" onscroll="onScreenScroll(this)">
+
+      <!-- PESTAÑAS TIPO CHIPS M3 -->
+      <div class="tab-pills">
+        <div class="tab-pill active" onclick="switchActivityTab('resumen', this)">Resumen</div>
+        <div class="tab-pill" onclick="switchActivityTab('clientes', this)">Clientes <span class="badge-count" id="countClientes">3</span></div>
+        <div class="tab-pill" onclick="switchActivityTab('alertas', this)">Alertas <span class="badge-count" id="countAlertas">1</span></div>
+        <div class="tab-pill" onclick="switchActivityTab('detalle', this)">Detalle</div>
+      </div>
+
+      <!-- LISTA DE EVENTOS -->
+      <div id="eventsContainer">
+        <div class="event-item tag-ONLINE ev-filter-resumen ev-filter-detalle">
+          <div class="event-meta">
+            <span class="event-badge">En línea</span>
+            <span class="event-time">16:15:02</span>
+          </div>
+          <div class="event-msg">Conectado a WhatsApp. El bot está atendiendo clientes.</div>
+        </div>
+
+        <div class="event-item tag-CLI ev-filter-resumen ev-filter-clientes ev-filter-detalle">
+          <div class="event-meta">
+            <span class="event-badge" style="color:#0284c7;">Cliente</span>
+            <span class="event-time">16:12:44</span>
+          </div>
+          <div class="event-msg">Mensaje de cliente recibido: "Información de paquetes y precios"</div>
+        </div>
+
+        <div class="event-item tag-CLI ev-filter-resumen ev-filter-clientes ev-filter-detalle">
+          <div class="event-meta">
+            <span class="event-badge" style="color:#0284c7;">Cliente</span>
+            <span class="event-time">16:08:10</span>
+          </div>
+          <div class="event-msg">Cliente VIP detectado: Catálogo enviado automáticamente.</div>
+        </div>
+
+        <div class="event-item tag-WARN ev-filter-resumen ev-filter-alertas ev-filter-detalle">
+          <div class="event-meta">
+            <span class="event-badge" style="color:var(--st-amber-bar);">Aviso</span>
+            <span class="event-time">15:58:30</span>
+          </div>
+          <div class="event-msg">index.js: ruta adaptada a almacenamiento local del teléfono.</div>
+        </div>
+
+        <div class="event-item tag-SYS ev-filter-detalle">
+          <div class="event-meta">
+            <span class="event-badge">Sistema</span>
+            <span class="event-time">15:55:00</span>
+          </div>
+          <div class="event-msg">Supervisor iniciado (PID 4920). Verificando estructura de archivos...</div>
+        </div>
+      </div>
+
+      <!-- ESTADO VACÍO -->
+      <div id="eventsEmptyState" class="card" style="display:none; text-align:center; padding: 30px 16px;">
+        <div style="font-size: 32px; margin-bottom: 8px;">📭</div>
+        <div style="font-weight:600; margin-bottom: 4px;">Todavía no hay actividad</div>
+        <div class="subtext">Cuando el bot atienda a un cliente o avise de un problema, lo verás aquí.</div>
+      </div>
+
+    </main>
+
+    <!-- PANTALLA 3: CONSOLA & TERMINAL SEGURA -->
+    <main id="screen-consola" class="screen-content">
+
+      <div class="tab-pills" style="margin-bottom: 12px;">
+        <div class="tab-pill active" onclick="switchConsoleTab('bot', this)">Consola</div>
+        <div class="tab-pill" onclick="switchConsoleTab('terminal', this)">Terminal Segura</div>
+      </div>
+
+      <!-- SECCIÓN A: CONSOLA DEL BOT -->
+      <div id="wrapConsoleBot">
+        <div class="console-screen" id="botConsoleOutput">[16:15:02] Bot iniciado.
+[16:15:05] Baileys: conectado y listo.
+[16:15:06] Esperando interacciones...
+[16:17:20] Cliente atendido: +52155492...</div>
+
+        <div class="card">
+          <div class="card-title">Comandos guardados</div>
+          <select id="selectBotCmds" class="input-field" style="margin-bottom: 8px;" onchange="onBotCmdSelected(this.value)">
+            <option value="">-- Elige un comando --</option>
+            <optgroup label="Comandos de WhatsApp">
+              <option value="ADMIN">ADMIN - Abre el panel de administración</option>
+              <option value="ACTUALIZAR">ACTUALIZAR - Subir nuevo index.js</option>
+              <option value="EDITAR DISPOSITIVO">EDITAR DISPOSITIVO - Instrucciones/media</option>
+              <option value="EDITAR MENSAJES">EDITAR MENSAJES - Texto/imágenes</option>
+              <option value="CLIENTES">CLIENTES - Gestión de clientes</option>
+              <option value="RESET">RESET - Reiniciar sistema</option>
+              <option value="DOWN">DOWN - Apagar bot</option>
+              <option value="RUN">RUN - Activar bot</option>
+              <option value="DOOMSDAY">DOOMSDAY - Descargar respaldo actual</option>
+              <option value="PATH">PATH - Cambiar ruta del bot</option>
+            </optgroup>
+            <optgroup label="Mi lista" id="groupMyCmds">
+              <option value="SALUDO">SALUDO - Hola, bot funcionando</option>
+            </optgroup>
+          </select>
+
+          <input type="text" id="inputConsoleCustom" class="input-field" placeholder="Escribe el texto a enviar al bot...">
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <button class="btn primary" onclick="sendToBotConsole()">Enviar al bot</button>
+            <button class="btn" onclick="copyConsoleCmd()">Copiar comando</button>
+          </div>
+          <button class="btn full" onclick="copyConsoleOutput()">Copiar salida</button>
+
+          <!-- Mi lista en Consola -->
+          <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--outline-variant);">
+            <div style="font-size:12px; font-weight:700; margin-bottom:6px; color:var(--text-tertiary);">Mi lista:</div>
+            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+              <input type="text" id="inputSaveCmdName" class="input-field" placeholder="Nombre (ej. REPORTE)" style="margin-bottom:0; flex:1;">
+              <button class="btn" onclick="saveToMyCmdList()">Guardar texto actual</button>
+            </div>
+            <button class="btn danger full" style="min-height:36px; font-size:12px;" onclick="deleteSelectedCmd()">Quitar el elegido</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN B: TERMINAL SEGURA (DIAGNÓSTICOS) -->
+      <div id="wrapTerminalSec" style="display:none;">
+        <div class="console-screen" id="termOutput" style="background:#0a0f1d; color:#38bdf8;">$ term-diag --safe
+Diagnósticos seguros predefinidos para Android.
+Listo para ejecutar.</div>
+
+        <div class="card">
+          <div class="card-title">Diagnósticos seguros de la PC / teléfono</div>
+          <select id="selectTermDiag" class="input-field" style="margin-bottom: 8px;" onchange="onTermDiagSelected(this.value)">
+            <option value="">-- Elige un diagnóstico --</option>
+            <optgroup label="Diagnósticos del Bot y Node">
+              <option value="node_v">Versión de Node</option>
+              <option value="node_chk">Revisar sintaxis de index.js</option>
+              <option value="tail_log">Ver últimas líneas del log</option>
+              <option value="tail_ev">Ver últimos eventos</option>
+            </optgroup>
+            <optgroup label="Conectividad de red">
+              <option value="ping_net">Probar internet</option>
+              <option value="ping_wa">Probar conexión a web.whatsapp.com</option>
+            </optgroup>
+            <optgroup label="Estado del teléfono">
+              <option value="disk">Espacio libre</option>
+              <option value="time">Hora del teléfono</option>
+            </optgroup>
+            <optgroup label="Mi lista" id="groupMyTermCmds">
+              <option value="custom_storage">Almacenamiento media - stat media/</option>
+            </optgroup>
+          </select>
+
+          <input type="text" id="inputTermCmd" class="input-field" placeholder="Comando a ejecutar...">
+
+          <!-- Botones de Terminal Segura requeridos: Ejecutar, Detener, Copiar salida, Limpiar -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <button class="btn primary" onclick="runSafeDiag()">Ejecutar</button>
+            <button class="btn danger" onclick="stopSafeDiag()">Detener</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <button class="btn" onclick="copyTermOutput()">Copiar salida</button>
+            <button class="btn" onclick="clearTermOutput()">Limpiar</button>
+          </div>
+
+          <!-- Mi lista en Terminal Segura: Nombre + Guardar comando actual + Quitar el elegido -->
+          <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--outline-variant);">
+            <div style="font-size:12px; font-weight:700; margin-bottom:6px; color:var(--text-tertiary);">Mi lista:</div>
+            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+              <input type="text" id="inputSaveTermName" class="input-field" placeholder="Nombre (ej. MI_TEST)" style="margin-bottom:0; flex:1;">
+              <button class="btn" onclick="saveToMyTermList()">Guardar comando actual</button>
+            </div>
+            <button class="btn danger full" style="min-height:36px; font-size:12px;" onclick="deleteSelectedTermCmd()">Quitar el elegido</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- PANTALLA 4: MANTENIMIENTO & AJUSTES -->
+    <main id="screen-mantenimiento" class="screen-content">
+
+      <!-- MANTENIMIENTO -->
+      <div class="card">
+        <div class="card-title">Mantenimiento</div>
+
+        <button id="btnInstallMaintain" class="btn full" style="margin-bottom:8px;" onclick="simulateInstall()">
+          Instalar / reparar
+        </button>
+
+        <button id="btnPickMaintain" class="btn full" style="margin-bottom:8px;" onclick="document.getElementById('mockFilePicker').click()">
+          Elegir index.js nuevo…
+        </button>
+        <input type="file" id="mockFilePicker" style="display:none;" onchange="alert('index.js seleccionado. Se validará antes de guardar.')">
+
+        <button class="btn full" style="margin-bottom:8px;" onclick="showMediaFolderModal()">
+          Abrir carpeta de recursos (media)
+        </button>
+
+        <button class="btn full" onclick="copySupportReport()">
+          Copiar informe para soporte
+        </button>
+      </div>
+
+      <!-- ACTUALIZAR DESDE DRIVE -->
+      <div class="card">
+        <div class="card-title">Actualizar desde Drive</div>
+        <div class="subtext" style="margin-bottom:8px;">
+          ID de Google Drive para actualizar:
+        </div>
+        <input type="text" id="inputDriveId" class="input-field" placeholder="ID de Drive (ej. 1AbC_xYz...)" value="1AbC_xYz9876543210-sample">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <button class="btn" onclick="saveDriveId()">Guardar</button>
+          <button class="btn primary" onclick="updateFromDrive()">Actualizar desde Drive</button>
+        </div>
+      </div>
+
+      <!-- AJUSTES DEL TELÉFONO -->
+      <div class="card">
+        <div class="card-title">Ajustes</div>
+
+        <div class="row-between" style="padding: 6px 0;">
+          <div>
+            <div style="font-weight:600; font-size:14px;">Iniciar el bot al encender el teléfono</div>
+            <div class="subtext">El bot comenzará a atender al reiniciar el dispositivo.</div>
+          </div>
+          <input type="checkbox" id="chkBootAuto" checked style="width:22px; height:22px; accent-color:var(--primary);">
+        </div>
+
+        <div style="margin-top: 14px; padding: 12px; background: var(--surface-variant); border-radius: 8px; font-size: 13px; line-height: 1.4; color: var(--text-muted); border-left: 3px solid var(--primary);">
+          📌 <b>El bot sigue trabajando aunque cierres la app.</b><br>
+          Permanece activo en segundo plano mediante un servicio con notificación permanente.
+        </div>
+      </div>
+
+      <!-- SECCIÓN AVANZADA COLAPSADA (ARQUITECTURA LOCAL / REMOTO) -->
+      <div class="card">
+        <details>
+          <summary>⚙️ Opciones avanzadas (Arquitectura de conexión)</summary>
+          <div class="advanced-box">
+            <div style="font-size:13px; font-weight:600; margin-bottom:4px;">Ubicación del bot:</div>
+            <div class="subtext" style="margin-bottom:10px;">
+              Diseñado para ejecutar el bot directamente en este teléfono. Puedes enlazarlo a un bot en una PC sin rediseñar.
+            </div>
+            <select id="selectEngineMode" class="input-field" onchange="onEngineModeChanged(this.value)">
+              <option value="local">Modo A: En este teléfono (Local)</option>
+              <option value="remote">Modo B: En otra PC (Remoto por WebSocket)</option>
+            </select>
+            <div id="remoteBox" style="display:none; margin-top:8px;">
+              <input type="text" class="input-field" placeholder="Dirección IP de la PC (ej. 192.168.1.50:3000)">
+            </div>
+          </div>
+        </details>
+      </div>
+
+    </main>
+
+    <!-- BARRA INFERIOR DE NAVEGACIÓN (M3 NAVIGATION BAR) -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" onclick="navigateTo('estado', this)">
+        <div class="nav-pill"><span class="nav-icon">📊</span></div>
+        <span>Estado</span>
+      </button>
+      <button class="nav-btn" onclick="navigateTo('actividad', this)">
+        <div class="nav-pill"><span class="nav-icon">📜</span></div>
+        <span>Actividad</span>
+      </button>
+      <button class="nav-btn" onclick="navigateTo('consola', this)">
+        <div class="nav-pill"><span class="nav-icon">💻</span></div>
+        <span>Consola</span>
+      </button>
+      <button class="nav-btn" onclick="navigateTo('mantenimiento', this)">
+        <div class="nav-pill"><span class="nav-icon">⚙️</span></div>
+        <span>Ajustes</span>
+      </button>
+    </nav>
+
+    <!-- HOJA / MODAL DE SIMULACIÓN DE ESTADOS (ACTIVABLE DESDE EL FAB) -->
+    <div id="simSheet" class="sheet-overlay" onclick="if(event.target===this) closeSimSheet();">
+      <div class="sheet-content">
+        <div class="sheet-title">
+          <span>🎛 Selector de Estados & Pruebas</span>
+          <button style="border:none; background:none; font-size:20px; cursor:pointer;" onclick="closeSimSheet()">✕</button>
+        </div>
+
+        <div style="font-size:12px; font-weight:700; color:var(--text-tertiary); margin-bottom:6px;">ELIGE EL ESTADO A FORZAR:</div>
+
+        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;">
+          <button class="btn" style="justify-content:flex-start;" onclick="applyState('green')">
+            🟢 <b>Verde:</b> Atendiendo clientes
+          </button>
+          <button class="btn" style="justify-content:flex-start;" onclick="applyState('amber_iniciando')">
+            🟠 <b>Ámbar:</b> Iniciando…
+          </button>
+          <button class="btn" style="justify-content:flex-start;" onclick="applyState('amber_reconectando')">
+            🟠 <b>Ámbar:</b> Reconectando…
+          </button>
+          <button class="btn" style="justify-content:flex-start;" onclick="applyState('red_sesion')">
+            🔴 <b>Rojo:</b> La sesión de WhatsApp se cerró
+          </button>
+          <button class="btn" style="justify-content:flex-start;" onclick="applyState('red_falta_instalar')">
+            🔴 <b>Rojo:</b> Falta instalar (resalta "Instalar")
+          </button>
+          <button class="btn" style="justify-content:flex-start;" onclick="applyState('red_falta_index')">
+            🔴 <b>Rojo:</b> Falta index.js (resalta "Elegir index.js")
+          </button>
+          <button class="btn" style="justify-content:flex-start;" onclick="applyState('purple_step1')">
+            🟣 <b>Morado:</b> Falta vincular WhatsApp (Paso 1)
+          </button>
+          <button class="btn" style="justify-content:flex-start;" onclick="applyState('purple_step2')">
+            🟣 <b>Morado:</b> Escribe el código en tu teléfono (Paso 2)
+          </button>
+          <button class="btn" style="justify-content:flex-start;" onclick="applyState('gray')">
+            ⚪ <b>Gris:</b> Bot detenido
+          </button>
+        </div>
+
+        <div style="font-size:12px; font-weight:700; color:var(--text-tertiary); margin-bottom:6px;">AVISOS INTELIGENTES:</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:14px;">
+          <button class="btn" onclick="toggleSyntaxBanner()">Aviso index.js</button>
+          <button class="btn" onclick="toggleMediaBanner()">Aviso Media</button>
+          <button class="btn danger full" style="grid-column: span 2;" onclick="toggleFatalBanner()">Error Fatal</button>
+        </div>
+
+        <div style="font-size:12px; font-weight:700; color:var(--text-tertiary); margin-bottom:6px;">TEMA & HERRAMIENTAS:</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
+          <button class="btn" onclick="toggleTheme()">☀️/🌙 Claro/Oscuro</button>
+          <button class="btn" onclick="hideFabButton()">🙈 Ocultar este botón</button>
+        </div>
+        <div class="subtext" style="text-align:center;">
+          (Si ocultas el botón, haz doble clic rápido en el encabezado de estado para volver a abrirlo).
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMACIÓN: BORRAR SESIÓN -->
+    <div id="modalReset" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-title">¿Borrar sesión y vincular?</div>
+        <div class="modal-desc">
+          Se borrará la sesión de WhatsApp de este bot y tendrás que vincular el número otra vez. ¿Borrar la sesión?
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn full" onclick="closeResetModal()">Cancelar</button>
+          <button class="btn danger full" onclick="confirmResetSession()">Sí, borrar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE CARPETA MEDIA -->
+    <div id="modalMedia" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-title">Carpeta de recursos (media)</div>
+        <div class="modal-desc">
+          Pega aquí tus recursos (video, APK, imágenes):<br>
+          <code style="display:block; background:var(--surface-variant); padding:8px; border-radius:6px; margin:8px 0; font-size:12px; word-break:break-all;">
+            /storage/emulated/0/Download/BotMedia/
+          </code>
+          Archivos detectados en index.js:
+          <ul style="padding-left:18px; margin:6px 0; font-size:13px;">
+            <li>promo.mp4</li>
+            <li>catalogo.pdf</li>
+            <li>app.apk</li>
+          </ul>
+        </div>
+        <button class="btn full primary" onclick="closeMediaModal()">Entendido</button>
+      </div>
+    </div>
+
+    <!-- SNACKBAR -->
+    <div id="snackbar">
+      <span id="snackbarText">Mensaje</span>
+    </div>
+
+  </div>
+
+  <script>
+    /* =========================================================================
+       CONTROLADOR DE LA MAQUETA INTERACTIVA (FASE 0 - VERSIÓN MEJORADA)
+       Cumple exactamente las 7 correcciones solicitadas.
+       ========================================================================= */
+
+    let currentScreen = 'estado';
+    let currentStateKey = 'gray';
+
+    // 1. NAVEGACIÓN Y ENCABEZADO ADAPTATIVO
+    function navigateTo(screenId, btnEl) {
+      currentScreen = screenId;
+      document.querySelectorAll('.screen-content').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById('screen-' + screenId);
+      if (target) target.classList.add('active');
+
+      // Actualizar botones de navegación
+      if (btnEl) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btnEl.classList.add('active');
+      } else {
+        const order = ['estado', 'actividad', 'consola', 'mantenimiento'];
+        const idx = order.indexOf(screenId);
+        const btns = document.querySelectorAll('.nav-btn');
+        if (btns[idx]) {
+          btns.forEach(b => b.classList.remove('active'));
+          btns[idx].classList.add('active');
+        }
+      }
+
+      // Regla de encabezado compacto:
+      // En Consola y Ajustes se reduce a franja delgada para ganar espacio en 360x800 dp
+      const header = document.getElementById('mainHeader');
+      if (screenId === 'consola' || screenId === 'mantenimiento') {
+        header.classList.add('compact');
+      } else {
+        header.classList.remove('compact');
+      }
+    }
+
+    // Encabezado compacto al hacer scroll en Estado o Actividad
+    function onScreenScroll(el) {
+      const header = document.getElementById('mainHeader');
+      if (currentScreen === 'estado' || currentScreen === 'actividad') {
+        if (el.scrollTop > 35) {
+          header.classList.add('compact');
+        } else {
+          header.classList.remove('compact');
+        }
+      }
+    }
+
+    // 2. SIMULADOR DE ESTADOS (7 ESTADOS PRINCIPALES + COMBINACIONES)
+    function applyState(key) {
+      currentStateKey = key;
+      const header = document.getElementById('mainHeader');
+      const title = document.getElementById('headerTitle');
+      const sub = document.getElementById('headerSubtitle');
+
+      const btnStart = document.getElementById('btnStart');
+      const btnStop = document.getElementById('btnStop');
+      const btnRestart = document.getElementById('btnRestart');
+      const btnResetSession = document.getElementById('btnResetSession');
+      const quickActionWrap = document.getElementById('quickActionWrap');
+      const btnQuickAction = document.getElementById('btnQuickAction');
+
+      const panelPair1 = document.getElementById('panelPairStep1');
+      const panelPair2 = document.getElementById('panelPairStep2');
+
+      const dotNode = document.getElementById('dot-node');
+      const dotDeps = document.getElementById('dot-deps');
+      const dotIndex = document.getElementById('dot-index');
+      const dotWa = document.getElementById('dot-wa');
+
+      const lblNode = document.getElementById('lbl-node');
+      const lblDeps = document.getElementById('lbl-deps');
+      const lblIndex = document.getElementById('lbl-index');
+      const lblWa = document.getElementById('lbl-wa');
+
+      // Limpiar estilos previos
+      header.className = 'status-header' + (header.classList.contains('compact') ? ' compact' : '');
+      panelPair1.style.display = 'none';
+      panelPair2.style.display = 'none';
+      quickActionWrap.style.display = 'none';
+      btnStart.className = 'btn primary';
+      btnResetSession.className = 'btn danger full';
+
+      // Valores base del checklist
+      dotNode.className = 'dot ok'; lblNode.textContent = 'v22';
+      dotDeps.className = 'dot ok'; lblDeps.textContent = 'OK';
+      dotIndex.className = 'dot ok'; lblIndex.textContent = 'Listo';
+      dotWa.className = 'dot wait'; lblWa.textContent = 'Inactivo';
+
+      switch (key) {
+        // VERDE: Atendiendo clientes
+        case 'green':
+          header.classList.add('st-ok');
+          title.textContent = "Atendiendo clientes";
+          sub.textContent = "Conectado a WhatsApp desde las 16:15. Movimientos de clientes hoy: 14.";
+          btnStart.disabled = true;
+          btnStop.disabled = false;
+          btnRestart.disabled = false;
+          dotWa.className = 'dot ok'; lblWa.textContent = 'Vinculado';
+          break;
+
+        // ÁMBAR: Iniciando
+        case 'amber_iniciando':
+          header.classList.add('st-wait');
+          title.textContent = "Iniciando…";
+          sub.textContent = "El bot se está conectando a WhatsApp.";
+          btnStart.disabled = true;
+          btnStop.disabled = false;
+          btnRestart.disabled = false;
+          dotWa.className = 'dot wait'; lblWa.textContent = 'Conectando';
+          break;
+
+        // ÁMBAR: Reconectando
+        case 'amber_reconectando':
+          header.classList.add('st-wait');
+          title.textContent = "Reconectando…";
+          sub.textContent = "Se perdió la conexión con WhatsApp; el bot lo intenta solo.";
+          btnStart.disabled = true;
+          btnStop.disabled = false;
+          btnRestart.disabled = false;
+          dotWa.className = 'dot wait'; lblWa.textContent = 'Reconectando';
+          break;
+
+        // ROJO: La sesión se cerró
+        case 'red_sesion':
+          header.classList.add('st-bad');
+          title.textContent = "La sesión de WhatsApp se cerró";
+          sub.textContent = "Pulsa «Borrar sesión y vincular» para conectar el número otra vez.";
+          // Iniciar solo se habilita en Detenido y Sesión cerrada; aquí resalta "Borrar sesión y vincular"
+          btnStart.disabled = false;
+          btnStop.disabled = true;
+          btnRestart.disabled = true;
+          btnResetSession.className = 'btn danger full highlight-danger';
+          dotWa.className = 'dot bad'; lblWa.textContent = 'Cerrada';
+          break;
+
+        // ROJO: Falta instalar
+        case 'red_falta_instalar':
+          header.classList.add('st-bad');
+          title.textContent = "Falta instalar";
+          sub.textContent = "Pulsa «Instalar» para preparar todo. Solo se hace una vez.";
+          // Iniciar DESHABILITADO, resalta "Instalar / reparar"
+          btnStart.disabled = true;
+          btnStop.disabled = true;
+          btnRestart.disabled = true;
+          quickActionWrap.style.display = 'block';
+          btnQuickAction.textContent = "🛠 Instalar / reparar ahora";
+          btnQuickAction.onclick = () => { navigateTo('mantenimiento'); simulateInstall(); };
+          dotDeps.className = 'dot bad'; lblDeps.textContent = 'Faltan';
+          break;
+
+        // ROJO: Falta index.js
+        case 'red_falta_index':
+          header.classList.add('st-bad');
+          title.textContent = "Falta index.js";
+          sub.textContent = "Copia el archivo index.js del bot en la carpeta o pulsa «Elegir index.js nuevo…».";
+          // Iniciar DESHABILITADO, resalta "Elegir index.js nuevo…"
+          btnStart.disabled = true;
+          btnStop.disabled = true;
+          btnRestart.disabled = true;
+          quickActionWrap.style.display = 'block';
+          btnQuickAction.textContent = "📁 Elegir index.js nuevo…";
+          btnQuickAction.onclick = () => { document.getElementById('mockFilePicker').click(); };
+          dotIndex.className = 'dot bad'; lblIndex.textContent = 'Falta';
+          break;
+
+        // MORADO: Falta vincular WhatsApp (Paso 1)
+        case 'purple_step1':
+          header.classList.add('st-pair');
+          title.textContent = "Falta vincular WhatsApp";
+          sub.textContent = "Escribe tu número abajo para recibir el código de vinculación.";
+          btnStart.disabled = true;
+          btnStop.disabled = false;
+          btnRestart.disabled = false;
+          panelPair1.style.display = 'block';
+          dotWa.className = 'dot wait'; lblWa.textContent = 'Sin vincular';
+          break;
+
+        // MORADO: Escribe el código en tu teléfono (Paso 2)
+        case 'purple_step2':
+          header.classList.add('st-pair');
+          title.textContent = "Escribe el código en tu teléfono";
+          sub.textContent = "El código caduca en pocos minutos.";
+          btnStart.disabled = true;
+          btnStop.disabled = false;
+          btnRestart.disabled = false;
+          panelPair2.style.display = 'block';
+          dotWa.className = 'dot wait'; lblWa.textContent = 'Esperando';
+          break;
+
+        // GRIS: Bot detenido
+        case 'gray':
+        default:
+          header.classList.add('st-off');
+          title.textContent = "Bot detenido";
+          sub.textContent = "Pulsa Iniciar para ponerlo a trabajar.";
+          btnStart.disabled = false;
+          btnStart.className = 'btn primary highlight-primary';
+          btnStop.disabled = true;
+          btnRestart.disabled = true;
+          dotWa.className = 'dot wait'; lblWa.textContent = 'Inactivo';
+          break;
+      }
+
+      closeSimSheet();
+      showSnackbar("Estado cambiado: " + title.textContent);
+    }
+
+    // 3. CONTROL DE HOJA DE SIMULACIÓN Y FAB
+    function openSimSheet() {
+      document.getElementById('simSheet').classList.add('open');
+    }
+    function closeSimSheet() {
+      document.getElementById('simSheet').classList.remove('open');
+    }
+    function hideFabButton() {
+      document.getElementById('fabSim').style.display = 'none';
+      closeSimSheet();
+      showSnackbar("Botón ocultado. Toca dos veces el encabezado para restaurarlo.");
+    }
+    document.getElementById('mainHeader').addEventListener('dblclick', function() {
+      document.getElementById('fabSim').style.display = 'flex';
+      showSnackbar("Selector de estados restaurado.");
+    });
+
+    // 4. AVISOS INTELIGENTES Y ERROR FATAL
+    function toggleSyntaxBanner() {
+      const b = document.getElementById('bannerSyntaxWarning');
+      b.style.display = (b.style.display === 'none' ? 'flex' : 'none');
+      closeSimSheet();
+    }
+    function hideSyntaxWarning() {
+      document.getElementById('bannerSyntaxWarning').style.display = 'none';
+      showSnackbar("Aviso de index.js ocultado");
+    }
+
+    function toggleMediaBanner() {
+      const b = document.getElementById('bannerMediaWarning');
+      b.style.display = (b.style.display === 'none' ? 'flex' : 'none');
+      closeSimSheet();
+    }
+    function hideMediaWarning() {
+      document.getElementById('bannerMediaWarning').style.display = 'none';
+      showSnackbar("Aviso de carpeta media ocultado");
+    }
+
+    function toggleFatalBanner() {
+      const b = document.getElementById('bannerFatal');
+      b.style.display = (b.style.display === 'none' ? 'flex' : 'none');
+      closeSimSheet();
+    }
+    function hideFatalBanner() {
+      document.getElementById('bannerFatal').style.display = 'none';
+      showSnackbar("Error fatal cerrado");
+    }
+
+    // 5. ACCIONES DE CONTROL
+    function onStartClicked() {
+      applyState('amber_iniciando');
+      setTimeout(() => applyState('green'), 1400);
+    }
+    function onStopClicked() {
+      applyState('gray');
+    }
+    function onRestartClicked() {
+      applyState('amber_iniciando');
+      setTimeout(() => applyState('green'), 1200);
+    }
+
+    // 6. FLUJO DE VINCULACIÓN
+    function submitPhoneNumber() {
+      const val = document.getElementById('inputPhoneNumber').value.trim();
+      if (!val || val.length < 8) {
+        alert("Escribe el número completo con código de país y sin «+». Ejemplo: 5215512345678");
+        return;
+      }
+      showSnackbar("Enviando número al bot...");
+      setTimeout(() => applyState('purple_step2'), 700);
+    }
+    function copyPairCode() {
+      const code = document.getElementById('displayPairCode').textContent;
+      navigator.clipboard?.writeText(code).catch(() => {});
+      showSnackbar("Código copiado: " + code);
+    }
+
+    // 7. MODAL DE BORRAR SESIÓN
+    function openResetModal() {
+      document.getElementById('modalReset').classList.add('open');
+    }
+    function closeResetModal() {
+      document.getElementById('modalReset').classList.remove('open');
+    }
+    function confirmResetSession() {
+      closeResetModal();
+      applyState('purple_step1');
+    }
+
+    // 8. ACTIVIDAD: FILTRADO DE PESTAÑAS
+    function switchActivityTab(tabName, pill) {
+      document.querySelectorAll('#screen-actividad .tab-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+
+      const items = document.querySelectorAll('#eventsContainer .event-item');
+      let visibleCount = 0;
+      items.forEach(item => {
+        if (item.classList.contains('ev-filter-' + tabName)) {
+          item.style.display = 'flex';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      document.getElementById('eventsEmptyState').style.display = (visibleCount === 0 ? 'block' : 'none');
+    }
+
+    // 9. CONSOLA Y TERMINAL SEGURA
+    function switchConsoleTab(type, pill) {
+      document.querySelectorAll('#screen-consola .tab-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      document.getElementById('wrapConsoleBot').style.display = (type === 'bot' ? 'block' : 'none');
+      document.getElementById('wrapTerminalSec').style.display = (type === 'terminal' ? 'block' : 'none');
+    }
+
+    // Consola del bot
+    function onBotCmdSelected(val) {
+      if (!val) return;
+      document.getElementById('inputConsoleCustom').value = val;
+    }
+    function sendToBotConsole() {
+      const val = document.getElementById('inputConsoleCustom').value.trim();
+      if (!val) return;
+      const out = document.getElementById('botConsoleOutput');
+      out.textContent += "\n> " + val + "\n[Sistema] Dato enviado al bot.";
+      out.scrollTop = out.scrollHeight;
+      document.getElementById('inputConsoleCustom').value = "";
+      showSnackbar("Enviado al bot.");
+    }
+    function copyConsoleCmd() {
+      const val = document.getElementById('inputConsoleCustom').value;
+      if (!val) return;
+      navigator.clipboard?.writeText(val).catch(() => {});
+      showSnackbar("Comando copiado: " + val);
+    }
+    function copyConsoleOutput() {
+      const txt = document.getElementById('botConsoleOutput').textContent;
+      navigator.clipboard?.writeText(txt).catch(() => {});
+      showSnackbar("Consola copiada al portapapeles.");
+    }
+    function saveToMyCmdList() {
+      const name = document.getElementById('inputSaveCmdName').value.trim();
+      const text = document.getElementById('inputConsoleCustom').value.trim();
+      if (!name || !text) {
+        alert("Escribe el texto en la casilla de arriba y un nombre para guardarlo.");
+        return;
+      }
+      const grp = document.getElementById('groupMyCmds');
+      const opt = document.createElement('option');
+      opt.value = text;
+      opt.textContent = name + " - " + text;
+      grp.appendChild(opt);
+      document.getElementById('selectBotCmds').value = text;
+      document.getElementById('inputSaveCmdName').value = "";
+      showSnackbar("Guardado en tu lista: " + name);
+    }
+    function deleteSelectedCmd() {
+      const sel = document.getElementById('selectBotCmds');
+      const cur = sel.selectedOptions[0];
+      if (!cur || cur.parentElement.id !== 'groupMyCmds') {
+        alert("Elige primero un comando de «Mi lista». Los comandos del bot no se pueden quitar.");
+        return;
+      }
+      if (confirm('¿Quitar «' + cur.text + '» de tu lista?')) {
+        cur.remove();
+        document.getElementById('inputConsoleCustom').value = "";
+        showSnackbar("Quitado de tu lista.");
+      }
+    }
+
+    // Terminal Segura (con Ejecutar, Detener, Copiar salida, Limpiar y Mi lista)
+    function onTermDiagSelected(val) {
+      const map = {
+        'node_v': 'node -v',
+        'node_chk': 'node --check index.js',
+        'tail_log': 'tail -n 40 logs/bot.log',
+        'tail_ev': 'tail -n 30 logs/eventos.log',
+        'ping_net': 'ping -c 4 8.8.8.8',
+        'ping_wa': 'ping -c 4 web.whatsapp.com',
+        'disk': 'df -h /data',
+        'time': 'date'
+      };
+      document.getElementById('inputTermCmd').value = map[val] || val;
+    }
+    function runSafeDiag() {
+      const cmd = document.getElementById('inputTermCmd').value.trim();
+      if (!cmd) return;
+      const out = document.getElementById('termOutput');
+      out.textContent += "\n\n$ " + cmd + "\n[Ejecutando diagnóstico seguro...]";
+      setTimeout(() => {
+        out.textContent += "\n✓ [fin - código 0] Diagnóstico completado sin anomalías.";
+        out.scrollTop = out.scrollHeight;
+      }, 500);
+    }
+    function stopSafeDiag() {
+      const out = document.getElementById('termOutput');
+      out.textContent += "\n[fin - código -1] Detenido desde el panel.";
+      showSnackbar("Diagnóstico detenido.");
+    }
+    function copyTermOutput() {
+      const txt = document.getElementById('termOutput').textContent;
+      navigator.clipboard?.writeText(txt).catch(() => {});
+      showSnackbar("Salida de la terminal copiada.");
+    }
+    function clearTermOutput() {
+      document.getElementById('termOutput').textContent = "$ term-diag --safe\nListo.";
+      showSnackbar("Terminal limpia.");
+    }
+    function saveToMyTermList() {
+      const name = document.getElementById('inputSaveTermName').value.trim();
+      const text = document.getElementById('inputTermCmd').value.trim();
+      if (!name || !text) {
+        alert("Escribe el comando en la casilla y un nombre para guardarlo.");
+        return;
+      }
+      const grp = document.getElementById('groupMyTermCmds');
+      const opt = document.createElement('option');
+      opt.value = text;
+      opt.textContent = name + " - " + text;
+      grp.appendChild(opt);
+      document.getElementById('selectTermDiag').value = text;
+      document.getElementById('inputSaveTermName').value = "";
+      showSnackbar("Guardado en tu lista de terminal: " + name);
+    }
+    function deleteSelectedTermCmd() {
+      const sel = document.getElementById('selectTermDiag');
+      const cur = sel.selectedOptions[0];
+      if (!cur || cur.parentElement.id !== 'groupMyTermCmds') {
+        alert("Elige primero un comando de «Mi lista». Los comandos predefinidos no se pueden quitar.");
+        return;
+      }
+      if (confirm('¿Quitar «' + cur.text + '» de tu lista?')) {
+        cur.remove();
+        document.getElementById('inputTermCmd').value = "";
+        showSnackbar("Quitado de tu lista.");
+      }
+    }
+
+    // 10. MANTENIMIENTO Y AJUSTES
+    function simulateInstall() {
+      applyState('amber_iniciando');
+      document.getElementById('headerTitle').textContent = "Instalando…";
+      document.getElementById('headerSubtitle').textContent = "Paso 1 de 3: descargando e instalando librerías...";
+      setTimeout(() => {
+        applyState('gray');
+        showSnackbar("Instalación terminada correctamente.");
+      }, 2000);
+    }
+    function showMediaFolderModal() {
+      document.getElementById('modalMedia').classList.add('open');
+    }
+    function closeMediaModal() {
+      document.getElementById('modalMedia').classList.remove('open');
+    }
+    function copySupportReport() {
+      const report = `Panel del bot 1.0 - informe ${new Date().toLocaleString()}
+Node.js: instalado | Librerías: instaladas | index.js: presente | Sesión: confirmada
+Bot en marcha: sí | Estado: ${document.getElementById('headerTitle').textContent}`;
+      navigator.clipboard?.writeText(report).catch(() => {});
+      showSnackbar("Informe copiado. Pégalo en un mensaje a soporte.");
+    }
+    function saveDriveId() {
+      showSnackbar("ID de Drive guardado.");
+    }
+    function updateFromDrive() {
+      const val = document.getElementById('inputDriveId').value.trim();
+      if (!val) {
+        alert("Falta el ID de Google Drive.");
+        return;
+      }
+      applyState('amber_iniciando');
+      document.getElementById('headerTitle').textContent = "Actualizando index.js…";
+      document.getElementById('headerSubtitle').textContent = "Validando que no sea HTML y que pase la sintaxis...";
+      setTimeout(() => {
+        applyState('gray');
+        showSnackbar("index.js actualizado con respaldo automático.");
+      }, 1800);
+    }
+    function onEngineModeChanged(val) {
+      document.getElementById('remoteBox').style.display = (val === 'remote' ? 'block' : 'none');
+      showSnackbar(val === 'remote' ? "Modo Remoto (PC) activado" : "Modo Local (Móvil) activado");
+    }
+
+    // 11. TEMA Y SNACKBAR
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      showSnackbar("Tema cambiado a modo " + (next === 'dark' ? 'oscuro' : 'claro'));
+    }
+
+    let snackTimer = null;
+    function showSnackbar(txt) {
+      const el = document.getElementById('snackbar');
+      document.getElementById('snackbarText').textContent = txt;
+      el.style.display = 'flex';
+      clearTimeout(snackTimer);
+      snackTimer = setTimeout(() => { el.style.display = 'none'; }, 2800);
+    }
+  </script>
+</body>
+</html>
