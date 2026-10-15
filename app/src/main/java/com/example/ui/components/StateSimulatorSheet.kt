@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -116,16 +116,16 @@ private fun SimulatorSheetContent(
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "Fuerza cualquier estado del bot y ejecuta las pruebas de viabilidad del motor Node.js.",
+            text = "Fuerza cualquier estado del bot y ejecuta pruebas de diagnóstico.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        // FASE 2A: PRUEBAS DE VIABILIDAD DEL MOTOR
+        // PRUEBA DEL MOTOR NODEJS-MOBILE
         Text(
-            text = "🔬 PRUEBA DE VIABILIDAD MOTOR (FASE 2A)",
+            text = "MOTOR NODEJS-MOBILE",
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
@@ -133,26 +133,15 @@ private fun SimulatorSheetContent(
 
         Button(
             onClick = {
-                viewModel.runEngineTest(context)
+                viewModel.runNodeJsMobileTest(context)
                 onNavigateToConsola()
                 onDismiss()
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(imageVector = Icons.Default.Science, contentDescription = null)
-            Text(text = " Probar motor (Node + Archivos → Consola)", fontSize = 12.sp)
-        }
-
-        OutlinedButton(
-            onClick = {
-                viewModel.runBaileysTest(context)
-                onNavigateToConsola()
-                onDismiss()
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "📦 Probar carga de Baileys (Diagnóstico → Consola)", fontSize = 12.sp)
+            Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null)
+            Text(text = " Probar motor (nodejs-project/main.js → Consola)", fontSize = 12.sp)
         }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))

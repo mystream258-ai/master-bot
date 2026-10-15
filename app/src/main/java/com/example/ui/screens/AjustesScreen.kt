@@ -70,16 +70,12 @@ fun AjustesScreen(
     val mediaResources by viewModel.mediaResources.collectAsState()
     val autoStart by viewModel.autoStartOnBoot.collectAsState()
     val driveId by viewModel.driveId.collectAsState()
-    val engineMode by viewModel.engineMode.collectAsState()
-    val remoteWsUrl by viewModel.remoteWsUrl.collectAsState()
     val status by viewModel.status.collectAsState()
 
     val clipboardManager = LocalClipboardManager.current
     val scrollState = rememberScrollState()
 
     var driveInput by remember(driveId) { mutableStateOf(driveId) }
-    var wsUrlInput by remember(remoteWsUrl) { mutableStateOf(remoteWsUrl) }
-    var isAdvancedExpanded by remember { mutableStateOf(false) }
 
     // Launcher del SAF (Storage Access Framework) para seleccionar múltiples archivos de media
     val mediaPickerLauncher = rememberLauncherForActivityResult(
@@ -329,98 +325,6 @@ fun AjustesScreen(
                             lineHeight = 16.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    }
-                }
-            }
-        }
-
-        // 4. SECCIÓN COLAPSADA: AVANZADO (ARQUITECTURA DE CONEXIÓN LOCAL / REMOTO)
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(16.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-        ) {
-            Column(modifier = Modifier.padding(14.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Opciones avanzadas (Arquitectura)",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    IconButton(onClick = { isAdvancedExpanded = !isAdvancedExpanded }) {
-                        Icon(
-                            imageVector = if (isAdvancedExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                            contentDescription = "Expandir avanzado"
-                        )
-                    }
-                }
-
-                AnimatedVisibility(visible = isAdvancedExpanded) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = "Ubicación del motor del bot:",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = "Diseñado para correr dentro de este teléfono. La interfaz está lista para enlazar a una PC remota por WebSocket sin rediseñar.",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            OutlinedButton(
-                                onClick = { viewModel.setEngineMode("local") },
-                                modifier = Modifier.weight(1f),
-                                border = if (engineMode == "local") androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
-                            ) {
-                                Text("En este teléfono")
-                            }
-
-                            OutlinedButton(
-                                onClick = { viewModel.setEngineMode("remote") },
-                                modifier = Modifier.weight(1f),
-                                border = if (engineMode == "remote") androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
-                            ) {
-                                Text("En otra PC")
-                            }
-                        }
-
-                        if (engineMode == "remote") {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                OutlinedTextField(
-                                    value = wsUrlInput,
-                                    onValueChange = { wsUrlInput = it },
-                                    label = { Text("Dirección WebSocket de la PC") },
-                                    singleLine = true,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Button(
-                                    onClick = { viewModel.setRemoteWsUrl(wsUrlInput) },
-                                    modifier = Modifier.height(48.dp)
-                                ) {
-                                    Text("Conectar")
-                                }
-                            }
-                        }
                     }
                 }
             }

@@ -102,7 +102,7 @@ object PhoneDiagnosticsRunner {
                     sb.appendLine("✓ Motor nativo listo.")
                 } else {
                     sb.appendLine("  libnode.so: No empaquetado en el APK.")
-                    sb.appendLine("  Modo recomendado: Conexión remota a PC (Modo B con Node 22).")
+                    sb.appendLine("  Estado: Motor no instalado.")
                 }
             }
 

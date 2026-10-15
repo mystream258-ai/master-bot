@@ -5,7 +5,6 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.engine.NodeEngineTester
 import com.example.engine.PhoneDiagnosticsRunner
 import com.example.model.BotEvent
 import com.example.model.BotStatus
@@ -16,16 +15,17 @@ import com.example.model.MediaResourceItem
 import com.example.model.PreparationChecklist
 import com.example.model.SavedBotCommand
 import com.example.model.SmartAlertsState
-import com.example.network.BotWebSocketClient
-import com.example.network.ConnectionStatus
+import com.example.nodejs.NodeRunner
 import com.example.service.BotForegroundService
 import com.example.storage.MediaStorageManager
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -51,10 +51,10 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
     // Checklist de preparación
     private val _checklist = MutableStateFlow(
         PreparationChecklist(
-            nodeState = CheckPointState.OK,
-            nodeLabel = "v22",
-            depsState = CheckPointState.OK,
-            depsLabel = "OK",
+            nodeState = if (NodeRunner.isEngineInstalled()) CheckPointState.OK else CheckPointState.ERROR,
+            nodeLabel = if (NodeRunner.isEngineInstalled()) "Instalado" else "Falta",
+            depsState = CheckPointState.WAITING,
+            depsLabel = "Pendiente",
             indexState = CheckPointState.OK,
             indexLabel = "Listo",
             sessionState = CheckPointState.WAITING,
@@ -71,7 +71,7 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
     private val _activeActivityTab = MutableStateFlow("resumen")
     val activeActivityTab: StateFlow<String> = _activeActivityTab.asStateFlow()
 
-    // Eventos de muestra iniciales (incluye todos los tags requeridos)
+    // Eventos de muestra iniciales
     private val _events = MutableStateFlow<List<BotEvent>>(
         listOf(
             BotEvent("1", "16:15:02", EventTag.ONLINE, "Conectado a WhatsApp. El bot está atendiendo clientes."),
@@ -90,10 +90,8 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
 
     // Consola del bot
     private val _consoleOutput = MutableStateFlow(
-        "[16:15:02] Bot iniciado correctamente.\n" +
-        "[16:15:05] Baileys: conectado y listo.\n" +
-        "[16:15:06] Esperando interacciones de clientes...\n" +
-        "[16:17:20] Cliente atendido: +52155492..."
+        "[Panel del Bot] Listo para iniciar.\n" +
+        "Esperando inicio del motor..."
     )
     val consoleOutput: StateFlow<String> = _consoleOutput.asStateFlow()
 
@@ -119,7 +117,7 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
     )
     val userCustomCommands: StateFlow<List<SavedBotCommand>> = _userCustomCommands.asStateFlow()
 
-    // Diagnósticos seguros del teléfono
+    // Diagnósticos del teléfono
     val diagnosticItems = listOf(
         DiagnosticItem("node_v", "Versión de Node.js", "node -v", "Confirma la presencia del motor Node.js"),
         DiagnosticItem("node_chk", "Revisar sintaxis de index.js", "node --check index.js", "Valida que el archivo no contenga errores de sintaxis"),
@@ -152,25 +150,6 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
     private val _driveId = MutableStateFlow(prefs.getString("drive_id", "1AbC_xYz9876543210-sample") ?: "")
     val driveId: StateFlow<String> = _driveId.asStateFlow()
 
-    private val _engineMode = MutableStateFlow(prefs.getString("engine_mode", "local") ?: "local")
-    val engineMode: StateFlow<String> = _engineMode.asStateFlow()
-
-    private val _remoteWsUrl = MutableStateFlow(prefs.getString("remote_ws_url", "ws://192.168.1.50:3000") ?: "ws://192.168.1.50:3000")
-    val remoteWsUrl: StateFlow<String> = _remoteWsUrl.asStateFlow()
-
-    // Cliente WebSocket para Modo B
-    private val wsClient = BotWebSocketClient(
-        onMessageReceived = { message -> handleRemoteMessage(message) },
-        onConnectionChanged = { status, error ->
-            if (status == ConnectionStatus.CONNECTED) {
-                showSnackbar("Conectado con éxito a la PC remota.")
-                addEvent(EventTag.ONLINE, "Conexión establecida con el bot en PC.")
-            } else if (status == ConnectionStatus.ERROR) {
-                showSnackbar("Error de conexión remota: ${error ?: "Desconocido"}")
-            }
-        }
-    )
-
     // Diálogos de confirmación
     private val _activeConfirmationDialog = MutableStateFlow<ConfirmationDialogType?>(null)
     val activeConfirmationDialog: StateFlow<ConfirmationDialogType?> = _activeConfirmationDialog.asStateFlow()
@@ -192,21 +171,30 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // Acciones de control de estado
+    // REGLA 5: onStartBot / confirmRestartBot NO deben simular estados con delay().
+    // Mientras no exista el motor, "Iniciar" debe mostrar "Motor no instalado" y no pasar a verde.
     fun onStartBot() {
-        if (_engineMode.value == "remote") {
-            wsClient.send("{\"action\": \"start\"}")
+        if (!NodeRunner.isEngineInstalled()) {
+            _status.value = BotStatus.MissingInstall
+            _checklist.update { it.copy(nodeState = CheckPointState.ERROR, nodeLabel = "Falta") }
+            addEvent(EventTag.ERR, "Error: Motor no instalado.")
+            _consoleOutput.update { "$it\n[Error] Motor Node.js no instalado. No se puede iniciar el bot." }
+            showSnackbar("Motor no instalado")
+            return
         }
-        viewModelScope.launch {
-            _status.value = BotStatus.Starting
-            BotForegroundService.startService(context, "Iniciando…", "El bot se está conectando a WhatsApp.")
-            addEvent(EventTag.SYS, "Iniciando el bot…")
-            delay(1200)
-            _status.value = BotStatus.Online(connectedSince = currentTime(), clientMovementsToday = 14)
-            BotForegroundService.startService(context, "Atendiendo clientes", "Conectado a WhatsApp en segundo plano.")
-            _checklist.update { it.copy(sessionState = CheckPointState.OK, sessionLabel = "Vinculado") }
-            addEvent(EventTag.ONLINE, "Conectado a WhatsApp. El bot está atendiendo clientes.")
+
+        // Si el motor está instalado, se inicia
+        val result = NodeRunner.startNode(context, "main.js")
+        if (result == 0) {
+            _status.value = BotStatus.Online(connectedSince = currentTime(), clientMovementsToday = 0)
+            BotForegroundService.startService(context, "Atendiendo clientes", "Motor Node.js activo en segundo plano.")
+            _checklist.update { it.copy(nodeState = CheckPointState.OK, nodeLabel = "OK") }
+            addEvent(EventTag.ONLINE, "Motor Node.js iniciado con éxito.")
             showSnackbar("Bot conectado y atendiendo")
+        } else {
+            _status.value = BotStatus.MissingInstall
+            addEvent(EventTag.ERR, "Error: Fallo al arrancar motor Node (código $result).")
+            showSnackbar("Fallo al arrancar motor")
         }
     }
 
@@ -219,9 +207,6 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun confirmStopBot() {
-        if (_engineMode.value == "remote") {
-            wsClient.send("{\"action\": \"stop\"}")
-        }
         _status.value = BotStatus.Stopped
         BotForegroundService.stopService(context)
         _checklist.update { it.copy(sessionState = CheckPointState.WAITING, sessionLabel = "Inactivo") }
@@ -238,15 +223,24 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun confirmRestartBot() {
-        viewModelScope.launch {
-            _status.value = BotStatus.Restarting
-            BotForegroundService.startService(context, "Reiniciando…", "El bot se reinicia solo en unos segundos.")
-            addEvent(EventTag.SYS, "Reiniciando el bot…")
-            delay(1300)
-            _status.value = BotStatus.Online(connectedSince = currentTime(), clientMovementsToday = 14)
-            BotForegroundService.startService(context, "Atendiendo clientes", "Conectado a WhatsApp.")
-            addEvent(EventTag.ONLINE, "Conectado a WhatsApp tras reinicio.")
+        if (!NodeRunner.isEngineInstalled()) {
+            _status.value = BotStatus.MissingInstall
+            _checklist.update { it.copy(nodeState = CheckPointState.ERROR, nodeLabel = "Falta") }
+            addEvent(EventTag.ERR, "Error: Motor no instalado.")
+            showSnackbar("Motor no instalado")
+            return
+        }
+
+        val result = NodeRunner.startNode(context, "main.js")
+        if (result == 0) {
+            _status.value = BotStatus.Online(connectedSince = currentTime(), clientMovementsToday = 0)
+            BotForegroundService.startService(context, "Atendiendo clientes", "Motor reiniciado.")
+            addEvent(EventTag.ONLINE, "Motor reiniciado.")
             showSnackbar("Bot reiniciado con éxito")
+        } else {
+            _status.value = BotStatus.MissingInstall
+            addEvent(EventTag.ERR, "Error: Fallo al reiniciar motor.")
+            showSnackbar("Motor no instalado")
         }
     }
 
@@ -271,17 +265,8 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
             showSnackbar("Escribe el número completo con código de país, sin «+».")
             return
         }
-        if (_engineMode.value == "remote") {
-            wsClient.send("{\"action\": \"command\", \"text\": \"$number\"}")
-        }
-        viewModelScope.launch {
-            addEvent(EventTag.PAIR, "Número de WhatsApp enviado: $number")
-            showSnackbar("Número enviado al bot. Generando código…")
-            delay(900)
-            val newCode = "ABCD-1234"
-            _status.value = BotStatus.PairingCodeReady(newCode)
-            addEvent(EventTag.CODE, "$newCode (Escribe este código en tu teléfono).")
-        }
+        addEvent(EventTag.PAIR, "Número de WhatsApp enviado: $number")
+        showSnackbar("Número enviado al bot. Esperando código…")
     }
 
     // Consola del bot
@@ -306,9 +291,6 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
     }
 
     private fun executeCommandSend(commandText: String) {
-        if (_engineMode.value == "remote") {
-            wsClient.send("{\"action\": \"command\", \"text\": \"$commandText\"}")
-        }
         _consoleOutput.update { current ->
             "$current\n> $commandText\n[Sistema] Dato enviado al bot."
         }
@@ -367,22 +349,40 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
         showSnackbar("Terminal limpia.")
     }
 
-    // Diagnósticos Fase 2A: Pruebas de viabilidad de Node.js y Baileys
-    fun runEngineTest(ctx: Context) {
+    // Prueba de integración nodejs-mobile (main.js de prueba)
+    fun runNodeJsMobileTest(ctx: Context) {
         viewModelScope.launch {
-            _consoleOutput.value = "[Prueba de Motor] Iniciando diagnóstico de viabilidad...\nEspere unos segundos..."
-            val result = NodeEngineTester.testNodeEngine(ctx, this@BotPanelViewModel)
-            _consoleOutput.value = result
-            addEvent(EventTag.SYS, "Prueba de viabilidad de motor Node.js ejecutada.")
-        }
-    }
+            _consoleOutput.value = "[nodejs-mobile] Preparando proyecto desde assets/nodejs-project..."
+            val projectDir = NodeRunner.prepareNodeProject(ctx)
+            val mainJs = File(projectDir, "main.js")
 
-    fun runBaileysTest(ctx: Context) {
-        viewModelScope.launch {
-            _consoleOutput.value = "[Prueba de Baileys] Analizando compatibilidad de Baileys...\nEspere unos segundos..."
-            val result = NodeEngineTester.testBaileysLoading(ctx, this@BotPanelViewModel)
-            _consoleOutput.value = result
-            addEvent(EventTag.SYS, "Prueba de compatibilidad de Baileys ejecutada.")
+            val sb = StringBuilder()
+            sb.appendLine("==========================================")
+            sb.appendLine("DIAGNÓSTICO INTEGRACIÓN NODEJS-MOBILE")
+            sb.appendLine("Carpeta de destino: ${projectDir.absolutePath}")
+            sb.appendLine("main.js copiado: ${mainJs.exists()} (${if (mainJs.exists()) mainJs.length() else 0} bytes)")
+            sb.appendLine("Estado motor nativo: ${if (NodeRunner.isEngineInstalled()) "INSTALADO" else "NO INSTALADO (libnode.so ausente en APK)"}")
+            sb.appendLine("==========================================")
+
+            if (NodeRunner.isEngineInstalled()) {
+                sb.appendLine("Invocando startNodeWithArguments(['node', 'main.js'])...")
+                val code = NodeRunner.startNode(ctx, "main.js")
+                sb.appendLine("Resultado startNode: código $code")
+                val logFile = File(projectDir, "node_diagnostics.log")
+                if (logFile.exists()) {
+                    sb.appendLine("\n--- Salida generada por main.js ---")
+                    sb.appendLine(logFile.readText())
+                }
+            } else {
+                sb.appendLine("\n[Aviso] El APK actual no tiene empaquetada la biblioteca nativa libnode.so.")
+                sb.appendLine("Código JS preparado en assets/nodejs-project/main.js:")
+                sb.appendLine("  • Comprueba: process.version")
+                sb.appendLine("  • Comprueba: crypto.subtle (WebCrypto)")
+                sb.appendLine("  • Comprueba: fetch() nativo")
+            }
+
+            _consoleOutput.value = sb.toString()
+            addEvent(EventTag.SYS, "Prueba de nodejs-mobile ejecutada.")
         }
     }
 
@@ -402,12 +402,6 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun addMediaFiles(filenames: List<String>) {
-        if (filenames.isEmpty()) return
-        refreshMediaResources()
-        showSnackbar("Se registraron ${filenames.size} archivo(s) de recursos.")
-    }
-
     // Ajustes
     fun setAutoStartOnBoot(enabled: Boolean) {
         _autoStartOnBoot.value = enabled
@@ -419,30 +413,6 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
         _driveId.value = id
         prefs.edit().putString("drive_id", id).apply()
         showSnackbar("ID de Google Drive guardado.")
-    }
-
-    fun setEngineMode(mode: String) {
-        _engineMode.value = mode
-        prefs.edit().putString("engine_mode", mode).apply()
-        if (mode == "remote") {
-            wsClient.connect(_remoteWsUrl.value)
-        } else {
-            wsClient.disconnect()
-        }
-        showSnackbar(if (mode == "remote") "Modo PC remota seleccionado." else "Modo Local (Móvil) activo.")
-    }
-
-    fun setRemoteWsUrl(url: String) {
-        _remoteWsUrl.value = url
-        prefs.edit().putString("remote_ws_url", url).apply()
-        if (_engineMode.value == "remote") {
-            wsClient.connect(url)
-        }
-    }
-
-    private fun handleRemoteMessage(jsonText: String) {
-        // En una implementación completa procesa los mensajes del servidor remoto
-        _consoleOutput.update { "$it\n[Remoto] $jsonText" }
     }
 
     fun setActiveActivityTab(tab: String) {
@@ -486,7 +456,7 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
                 }
             }
             is BotStatus.MissingInstall -> {
-                _checklist.update { it.copy(depsState = CheckPointState.ERROR, depsLabel = "Faltan") }
+                _checklist.update { it.copy(nodeState = CheckPointState.ERROR, nodeLabel = "Falta") }
             }
             is BotStatus.MissingIndex -> {
                 _checklist.update { it.copy(indexState = CheckPointState.ERROR, indexLabel = "Falta") }
@@ -519,10 +489,5 @@ class BotPanelViewModel(application: Application) : AndroidViewModel(application
             message = message
         )
         _events.update { listOf(newEvent) + it.take(150) }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        wsClient.disconnect()
     }
 }
